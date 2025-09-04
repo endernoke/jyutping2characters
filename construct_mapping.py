@@ -66,6 +66,7 @@ for row in reader:
 final_data = []
 for word, jyutping in all_jyutping_mapping.items():
     frequency = word_frequencies_map.get(word, 0.1) # set to 0.1 in order to avoid division by zero later on
+    frequency = 0.1 if frequency == 0 else frequency # also set to 0.1 if original frequency is zero
     final_data.append((word, jyutping, frequency))
 
 with open("jyutping_mapping.json", "w") as f:
