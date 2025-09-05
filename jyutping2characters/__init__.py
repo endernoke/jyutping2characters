@@ -5,11 +5,15 @@ This package provides a high-performance transcriber that uses dynamic programmi
 to find the most probable sequence of Chinese characters for a given Jyutping input.
 """
 
+import logging
 import threading
 from typing import Optional
 
 from .transcriber import JyutpingTranscriber
 from .data_builder import ensure_data_available, clear_cached_data
+
+# Set up logging for the package
+logger = logging.getLogger(__name__)
 
 __version__ = "0.1.0"
 __all__ = ["transcribe", "warmup", "clear_cache", "JyutpingTranscriber"]
@@ -32,13 +36,13 @@ def _get_global_transcriber() -> JyutpingTranscriber:
         with _transcriber_lock:
             # Double-check locking pattern
             if _transcriber_instance is None:
-                print("🚀 Initializing Jyutping transcriber (this may take a moment on first run)...")
+                logger.info("Initializing Jyutping transcriber")
                 try:
                     data_path = ensure_data_available()
                     _transcriber_instance = JyutpingTranscriber.from_file(data_path)
-                    print("✅ Transcriber ready!")
+                    logger.info("Transcriber initialized successfully")
                 except Exception as e:
-                    print(f"❌ Failed to initialize transcriber: {e}")
+                    logger.error(f"Failed to initialize transcriber: {e}")
                     raise
     
     return _transcriber_instance

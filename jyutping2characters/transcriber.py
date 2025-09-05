@@ -23,7 +23,7 @@ class JyutpingTranscriber:
     probabilities of its constituent words/phrases, making it a "simple model"
     that does not rely on n-gram transition probabilities between words.
 
-    Author: G. Gemini
+    Co-authored-by: G. Gemini
     """
 
     def __init__(self, frequency_data: List[Tuple[str, str, float]]) -> None:
@@ -154,42 +154,3 @@ class JyutpingTranscriber:
         return "".join(result)
 
 
-# --- Validation Section ---
-if __name__ == "__main__":
-    # Sample data for testing (using simplified examples)
-    sample_frequency_data = [
-        # Single characters
-        ("大", "daai6", 150),
-        ("打", "daa2", 100), # "大" is more frequent than "打"
-        ("工", "gung1", 200),
-        ("作", "zok3", 190),
-        ("西", "sai1", 80),
-        ("安", "on1", 90),
-        ("先", "sin1", 120),
-        
-        # Phrases / Proper Nouns
-        # The phrase "工作" is very frequent, more so than "工" and "作" separately.
-        ("工作", "gung1zok3", 500),
-        # The city "西安" is a very frequent phrase.
-        ("西安", "sai1on1", 250),
-    ]
-
-    # Instantiate the transcriber with our sample data.
-    print("Initializing transcriber with sample data...")
-    transcriber = JyutpingTranscriber(sample_frequency_data)
-    print("Initialization complete.\n")
-
-    # Define test cases.
-    test_cases = [
-        "daai6gung1zok3",
-        "sai1on1",
-        "sin1",
-        "daa2zok3gung1"
-    ]
-
-    # Run tests
-    for text in test_cases:
-        transcribed_text = transcriber.transcribe(text)
-        print(f"Input:        '{text}'")
-        print(f"Transcribed:  '{transcribed_text}'")
-        print("-" * 30)

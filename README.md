@@ -24,6 +24,46 @@ Convert Jyutping romanization to Traditional Chinese characters using advanced d
 pip install jyutping-transcriber
 ```
 
+## Logging Configuration
+
+This library uses Python's standard `logging` module for informational messages and debugging. By default, logging is disabled to keep the library quiet during normal use.
+
+### Enabling Logging
+
+To see informational messages (data loading, initialization, etc.):
+
+```python
+import logging
+logging.basicConfig(level=logging.INFO)
+
+# Now library operations will show progress
+from jyutping_transcriber import transcribe
+result = transcribe("ngo5oi3nei5")  # Will show initialization messages
+```
+
+### Disabling All Logging
+
+To completely silence the library:
+
+```python
+import logging
+logging.getLogger('jyutping2characters').setLevel(logging.CRITICAL)
+
+# Library will be completely silent
+from jyutping_transcriber import transcribe
+result = transcribe("ngo5oi3nei5")  # No output to stdout
+```
+
+### Debug Logging
+
+For detailed debugging information (useful for development):
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+# Shows detailed data processing steps, downloads, etc.
+```
+
 ## ⚠️ First Run Notice
 
 **Important**: On first use, this library will download and process mapping data from online sources. This process takes 1-2 minutes but only happens once. The data is then cached locally for instant subsequent use.

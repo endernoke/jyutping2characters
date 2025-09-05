@@ -7,12 +7,16 @@ processing it, and caching the results for efficient access.
 
 import csv
 import json
+import logging
 import os
 import urllib.request
 import tempfile
 from pathlib import Path
 from typing import Dict, List, Tuple
 import appdirs
+
+# Set up logging for the data builder module
+logger = logging.getLogger(__name__)
 
 
 def get_cache_dir() -> Path:
@@ -35,13 +39,12 @@ def ensure_data_available() -> str:
     data_path = get_cached_data_path()
     
     if not data_path.exists():
-        print("📦 Building Jyutping mapping data from online sources...")
-        print("   This happens once and may take a few seconds. Please wait...")
+        logger.info("Building Jyutping mapping data from online sources")
         try:
             build_mapping_data(str(data_path))
-            print(f"✅ Data cached successfully to: {data_path}")
+            logger.info(f"Data cached successfully to: {data_path}")
         except Exception as e:
-            print(f"❌ Failed to build data: {e}")
+            logger.error(f"Failed to build data: {e}")
             raise
     
     return str(data_path)
@@ -52,19 +55,19 @@ def clear_cached_data() -> None:
     data_path = get_cached_data_path()
     if data_path.exists():
         data_path.unlink()
-        print("🗑️  Cached data cleared.")
+        logger.info("Cached data cleared")
     else:
-        print("ℹ️  No cached data found.")
+        logger.info("No cached data found")
 
 
 def download_file(url: str) -> str:
     """Download a file from URL and return its content as string."""
-    print(f"   📥 Downloading: {url}")
+    logger.debug(f"Downloading: {url}")
     try:
         with urllib.request.urlopen(url) as response:
             return response.read().decode('utf-8')
     except Exception as e:
-        print(f"   ❌ Failed to download {url}: {e}")
+        logger.error(f"Failed to download {url}: {e}")
         raise
 
 
@@ -86,7 +89,7 @@ def build_mapping_data(output_path: str) -> None:
     chars_jyutping_mapping: Dict[str, str] = {}
 
     # Step 1: Download and process LSHK Jyutping Table
-    print("   🔍 Processing LSHK Jyutping Table...")
+    logger.debug("Processing LSHK Jyutping Table")
     list_tsv_content = download_file(JYUTPING_TABLE_LIST_URL)
     reader = csv.reader(reversed(list_tsv_content.splitlines()), delimiter='\t')
     
@@ -99,7 +102,7 @@ def build_mapping_data(output_path: str) -> None:
         all_jyutping_mapping[row[0]] = row[2]
         char_count += 1
     
-    print(f"   ✅ Processed {char_count} character mappings")
+    logger.debug(f"Processed {char_count} character mappings")
 
     def get_jyutping(phrase: str) -> str | None:
         """Get jyutping for a phrase using character mappings."""
@@ -113,7 +116,7 @@ def build_mapping_data(output_path: str) -> None:
         return ''.join(jyutping)
 
     # Step 2: Download and process word frequency data
-    print("   📊 Processing word frequency data...")
+    logger.debug("Processing word frequency data")
     word_frequencies_map: Dict[str, int] = {}
     essay_content = download_file(RIME_ESSAY_URL)
     reader = csv.reader(essay_content.splitlines(), delimiter='\t')
@@ -130,10 +133,10 @@ def build_mapping_data(output_path: str) -> None:
             all_jyutping_mapping[word] = jyutping
             word_count += 1
     
-    print(f"   ✅ Processed {word_count} word frequency entries")
+    logger.debug(f"Processed {word_count} word frequency entries")
 
     # Step 3: Download and process Rime dictionary
-    print("   📚 Processing Rime Cantonese dictionary...")
+    logger.debug("Processing Rime Cantonese dictionary")
     dict_content = download_file(RIME_DICT_URL)
     tsv_content = dict_content[dict_content.index('...') + 3:].strip()
     reader = csv.reader(reversed(tsv_content.splitlines()), delimiter='\t')
@@ -150,10 +153,10 @@ def build_mapping_data(output_path: str) -> None:
             all_jyutping_mapping[word] = jyutping
             dict_count += 1
     
-    print(f"   ✅ Processed {dict_count} dictionary entries")
+    logger.debug(f"Processed {dict_count} dictionary entries")
 
     # Step 4: Prepare final data structure
-    print("   🔧 Preparing final data structure...")
+    logger.debug("Preparing final data structure")
     final_data: List[Tuple[str, str, float]] = []
     for word, jyutping in all_jyutping_mapping.items():
         frequency = word_frequencies_map.get(word, 0.1)  # default to 0.1 to avoid division by zero
@@ -161,16 +164,16 @@ def build_mapping_data(output_path: str) -> None:
         final_data.append((word, jyutping, frequency))
 
     # Step 5: Write to output file
-    print("   💾 Saving data to cache...")
+    logger.debug("Saving data to cache")
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding='utf-8') as f:
         json.dump(final_data, f, ensure_ascii=False, indent=2)
 
-    print(f"   📈 Total entries in mapping: {len(final_data):,}")
+    logger.info(f"Built mapping data with {len(final_data):,} entries")
 
 
 if __name__ == "__main__":
     # For testing purposes
     output_path = get_cached_data_path()
     build_mapping_data(str(output_path))
-    print(f"Data built successfully: {output_path}")
+    logger.info(f"Data built successfully: {output_path}")

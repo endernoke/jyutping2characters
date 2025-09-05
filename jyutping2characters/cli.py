@@ -6,6 +6,7 @@ and controlling the transcriber behavior.
 """
 
 import argparse
+import logging
 import sys
 from typing import Optional
 
@@ -30,6 +31,9 @@ def cmd_transcribe(args: argparse.Namespace) -> None:
 def cmd_build_data(args: argparse.Namespace) -> None:
     """Handle the build-data command."""
     try:
+        # Set up logging for CLI feedback during data building
+        logging.basicConfig(level=logging.INFO, format='%(message)s')
+        
         data_path = get_cached_data_path()
         print("🔄 Rebuilding Jyutping mapping data...")
         build_mapping_data(str(data_path))
@@ -52,6 +56,9 @@ def cmd_clear_cache(args: argparse.Namespace) -> None:
 def cmd_warmup(args: argparse.Namespace) -> None:
     """Handle the warmup command."""
     try:
+        # Set up logging for CLI feedback during warmup
+        logging.basicConfig(level=logging.INFO, format='%(message)s')
+        
         print("🔥 Warming up transcriber...")
         warmup()
         print("✅ Transcriber warmed up and ready!")
