@@ -85,11 +85,14 @@ jyutping2characters info
 
 This project builds upon excellent open-source data from:
 
-- **[LSHK Jyutping Table](https://github.com/lshk-org/jyutping-table)** - Maintained by the Linguistic Society of Hong Kong, providing character-to-Jyutping mappings
-- **[Rime Cantonese](https://github.com/rime/rime-cantonese)** - Part of the Rime Input Method Engine project, providing word frequencies and dictionary data
+- [LSHK Jyutping Table](https://github.com/lshk-org/jyutping-table): Maintained by the Linguistic Society of Hong Kong, providing character-to-Jyutping mappings. ([CC-BY 4.0](https://github.com/lshk-org/jyutping-table/blob/master/LICENSE))
+- [Rime Cantonese](https://github.com/rime/rime-cantonese): Part of the Rime Input Method Engine project, providing word frequencies and dictionary data. ([CC-BY 4.0](https://github.com/rime/rime-cantonese/blob/main/LICENSE-CC-BY) and [ODbL 1.0](https://github.com/rime/rime-cantonese/blob/main/LICENSE-ODbL))
 
 Credits to the authors and contributors of these projects for making this work possible.
 
 ## License
 
 [MIT License](LICENSE)
+
+## Author
+[James Zheng](https://linkedin.com/in/james-zheng-zi)

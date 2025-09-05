@@ -168,6 +168,17 @@ def build_mapping_data(output_path: str) -> None:
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding='utf-8') as f:
         json.dump(final_data, f, ensure_ascii=False, indent=2)
+    
+    # Write attribution file
+    attribution_path = os.path.join(os.path.dirname(output_path), "ATTRIBUTION.txt")
+    with open(attribution_path, "w", encoding='utf-8') as f:
+        f.write("""jyutping2characters
+Data built using the following sources:
+- LSHK Jyutping Table (CC-BY 4.0)
+  https://github.com/lshk-org/jyutping-table
+- Rime Cantonese (CC-BY 4.0 and ODbL 1.0)
+  https://github.com/rime/rime-cantonese
+""")
 
     logger.info(f"Built mapping data with {len(final_data):,} entries")
 
