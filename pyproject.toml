@@ -3,8 +3,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "jyutping2characters_ENDERNOKE"
-dynamic = ["version"]
+name = "jyutping2characters"
+version = "0.1.0"
 description = "Convert Jyutping romanization to Traditional Chinese characters"
 license = "MIT"
 authors = [
