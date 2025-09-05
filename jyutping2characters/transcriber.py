@@ -1,9 +1,20 @@
+"""
+Jyutping to Chinese character transcriber using dynamic programming.
+
+This module provides the JyutpingTranscriber class that converts Jyutping
+romanization to Traditional Chinese characters using the Viterbi algorithm
+for optimal sequence selection based on word frequencies.
+"""
+
+import json
 import math
 import collections
+from typing import List, Tuple, Dict
 
-class RomanizedTranscriber:
+
+class JyutpingTranscriber:
     """
-    A tool to transcribe romanized text back to its original non-latin characters
+    A tool to transcribe Jyutping romanization back to Traditional Chinese characters
     using a dynamic programming algorithm based on word/phrase frequencies.
 
     This implementation uses the Viterbi algorithm to find the most probable
@@ -15,14 +26,14 @@ class RomanizedTranscriber:
     Author: G. Gemini
     """
 
-    def __init__(self, frequency_data: list[tuple[str, str, int]]):
+    def __init__(self, frequency_data: List[Tuple[str, str, float]]) -> None:
         """
         Initializes the transcriber with the language data.
 
         Args:
             frequency_data: A list of tuples, where each tuple contains:
-                (original_word: str, romanized_spelling: str, frequency: int)
-                Example: [("你好", "nihao", 5000), ("好", "hao", 10000)]
+                (original_word: str, romanized_spelling: str, frequency: float)
+                Example: [("你好", "neihao", 5000), ("好", "hou", 10000)]
         """
         if not frequency_data:
             raise ValueError("Frequency data cannot be empty.")
@@ -34,10 +45,24 @@ class RomanizedTranscriber:
         
         # Find the maximum possible length of a romanized word in our dictionary.
         # This is an optimization to avoid checking excessively long substrings.
-        self.max_word_len = max(len(pinyin) for pinyin in self.log_prob_dict.keys())
+        self.max_word_len = max(len(jyutping) for jyutping in self.log_prob_dict.keys())
 
+    @classmethod
+    def from_file(cls, data_path: str) -> 'JyutpingTranscriber':
+        """
+        Create a JyutpingTranscriber instance from a JSON data file.
+        
+        Args:
+            data_path: Path to the JSON file containing frequency data
+            
+        Returns:
+            JyutpingTranscriber instance
+        """
+        with open(data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return cls(data)
 
-    def _build_log_prob_dict(self, frequency_data: list[tuple[str, str, int]]) -> dict:
+    def _build_log_prob_dict(self, frequency_data: List[Tuple[str, str, float]]) -> Dict[str, List[Tuple[str, float]]]:
         """
         Processes the raw frequency data into a lookup dictionary of log probabilities.
         Using log probabilities turns multiplication of probabilities into addition,
@@ -66,12 +91,15 @@ class RomanizedTranscriber:
         Transcribes a romanized string into the most likely original character sequence.
 
         Args:
-            romanized_text: The input string to transcribe (e.g., "dagongzuo").
+            romanized_text: The input Jyutping string to transcribe (e.g., "gam1jat6").
 
         Returns:
-            The most probable transcription (e.g., "大工作"). Returns an empty
+            The most probable transcription (e.g., "今日"). Returns an empty
             string if no valid transcription can be found.
         """
+        if not romanized_text:
+            return ""
+            
         n = len(romanized_text)
         
         # scores[i] stores the max log probability of a transcription for the prefix of length i.
@@ -109,7 +137,6 @@ class RomanizedTranscriber:
         # --- Backtracking: Reconstruct the best path ---
         if scores[n] == -float('inf'):
             # This means no valid sequence of words from our dictionary can form the input string.
-            print(f"Warning: Could not find a valid transcription for '{romanized_text}'.")
             return ""
             
         result = []
@@ -126,63 +153,43 @@ class RomanizedTranscriber:
         
         return "".join(result)
 
+
 # --- Validation Section ---
 if __name__ == "__main__":
-    # 1. Define sample data for validation (using Chinese Pinyin as an example).
-    # This data is designed to test ambiguity resolution.
+    # Sample data for testing (using simplified examples)
     sample_frequency_data = [
         # Single characters
-        ("大", "da", 150),
-        ("打", "da", 100), # "大" is more frequent than "打"
-        ("工", "gong", 200),
-        ("作", "zuo", 190),
-        ("西", "xi", 80),
-        ("安", "an", 90),
-        ("先", "xian", 120),
+        ("大", "daai6", 150),
+        ("打", "daa2", 100), # "大" is more frequent than "打"
+        ("工", "gung1", 200),
+        ("作", "zok3", 190),
+        ("西", "sai1", 80),
+        ("安", "on1", 90),
+        ("先", "sin1", 120),
         
         # Phrases / Proper Nouns
         # The phrase "工作" is very frequent, more so than "工" and "作" separately.
-        ("工作", "gongzuo", 500),
+        ("工作", "gung1zok3", 500),
         # The city "西安" is a very frequent phrase.
-        ("西安", "xian", 250),
+        ("西安", "sai1on1", 250),
     ]
 
-    # 2. Instantiate the transcriber with our data.
+    # Instantiate the transcriber with our sample data.
     print("Initializing transcriber with sample data...")
-    transcriber = RomanizedTranscriber(sample_frequency_data)
+    transcriber = JyutpingTranscriber(sample_frequency_data)
     print("Initialization complete.\n")
 
-    # 3. Define test cases.
+    # Define test cases.
     test_cases = [
-        "dagongzuo",
-        "xian",
-        "xianan",
-        "dazuogong"
+        "daai6gung1zok3",
+        "sai1on1",
+        "sin1",
+        "daa2zok3gung1"
     ]
 
-    # 4. Run tests and explain the results.
+    # Run tests
     for text in test_cases:
         transcribed_text = transcriber.transcribe(text)
-        print(f"Input:           '{text}'")
-        print(f"Transcribed:     '{transcribed_text}'")
-        
-        if text == "dagongzuo":
-            print("Explanation:     The algorithm had two main choices:")
-            print("                 1. 'da' | 'gongzuo'  -> 大 | 工作")
-            print("                 2. 'da' | 'gong' | 'zuo' -> 大 | 工 | 作")
-            print("                 Because the frequency of the combined phrase '工作' (500) is much higher")
-            print("                 than the individual frequencies of '工' (200) and '作' (190), the first path was chosen as more probable.")
-        
-        elif text == "xian":
-            print("Explanation:     The algorithm chose between the single character '先' (freq 120) and the")
-            print("                 proper noun '西安' (freq 250). Since '西安' has a higher frequency, it was chosen.")
-
-        elif text == "xianan":
-            print("Explanation:     The algorithm correctly segmented the string into 'xian' | 'an',")
-            print("                 resulting in '西安' (the most likely 'xian') followed by '安'.")
-
-        elif text == "dazuogong":
-            print("Explanation:     Here, no combined phrase exists. The algorithm finds the best sequence")
-            print("                 of individual characters: 'da' -> '大' (more frequent than '打'), 'zuo' -> '作', 'gong' -> '工'.")
-            
-        print("-" * 25)
+        print(f"Input:        '{text}'")
+        print(f"Transcribed:  '{transcribed_text}'")
+        print("-" * 30)
